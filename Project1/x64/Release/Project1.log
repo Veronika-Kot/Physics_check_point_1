@@ -1,0 +1,9 @@
+﻿  theMain.cpp
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\themain.cpp(151): warning C4101: 'fragment_shader': unreferenced local variable
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\themain.cpp(150): warning C4101: 'vertex_shader': unreferenced local variable
+  Generating code
+  0 of 725 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Project1.vcxproj -> C:\Users\Veronika Kotckovich\Desktop\git\Grapics_SecondWeek\x64\Release\Project1.exe

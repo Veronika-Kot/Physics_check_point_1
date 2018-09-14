@@ -1,0 +1,15 @@
+﻿  cShader.cpp
+  OpenGLMeshLoader.cpp
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\openglmeshloader.cpp(13): warning C4091: 'static ': ignored on left of 'const sVert_xyz_rgb' when no variable is declared
+  PlyFileLoader.cpp
+  theMain.cpp
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\linmath.h(56): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\linmath.h(57): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\linmath.h(58): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\linmath.h(337): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\themain.cpp(181): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\themain.cpp(105): warning C4101: 'fragment_shader': unreferenced local variable
+c:\users\veronika kotckovich\desktop\git\grapics_secondweek\project1\themain.cpp(104): warning C4101: 'vertex_shader': unreferenced local variable
+  Generating Code...
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Project1.vcxproj -> C:\Users\Veronika Kotckovich\Desktop\git\Grapics_SecondWeek\x64\Debug\Project1.exe
