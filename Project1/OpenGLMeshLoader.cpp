@@ -1,3 +1,5 @@
+/*
+
 //OpenGLMeshLoader.cpp
 //***Take a model file array and upload it to GPU
 #include "sPlyVertex.h"
@@ -6,11 +8,11 @@
 
 
 
-static const struct sVert_xyz_rgb //This is based on what the shader is expecting 
-{
-	float x, y, z; //location
-	float r, g, b; //color
-};
+//static const struct sVert_xyz_rgb //This is based on what the shader is expecting 
+//{
+//	float x, y, z; //location
+//	float r, g, b; //color
+//};
 
 
 GLuint vertex_buffer;
@@ -19,10 +21,10 @@ bool LoadMeshIntoGPUBuffer(void) { //Takes an array of vertices and indices and 
 	
 	//***Alocate another array temp for the vertex buffer
 
-	sVert_xyz_rgb* pVertices = new sVert_xyz_rgb[g_numberOfVertices];
+	//sVert_xyz_rgb* pVertices = new sVert_xyz_rgb[g_numberOfVertices];
 	
 	//***Copy everything from PLY format to the vertex buffer format
-	for (unsigned int index = 0; index != g_numberOfVertices; index++) {
+	for (unsigned int index = 0; index !=  g_numberOfVertices; index++) {
 		
 		//copy data to shader
 		pVertices[index].x = g_pArrayVert[index].x;
@@ -121,3 +123,4 @@ bool Load_And_Unroll_MeshIntoGPUBuffer(void) { //Takes an array of triangles and
 	return true;
 }
 
+*/

@@ -21,18 +21,22 @@
   <ItemGroup>
     <ClCompile Include="cShader.cpp" />
     <ClCompile Include="cShaderManager.cpp" />
+    <ClCompile Include="cVAOMeshManager.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="OpenGLMeshLoader.cpp" />
     <ClCompile Include="PlyFileLoader.cpp" />
+    <ClCompile Include="sModelDrawInfo.cpp" />
     <ClCompile Include="theMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cShaderManager.h" />
+    <ClInclude Include="cVAOMeshManager.h" />
     <ClInclude Include="globalStuff.h" />
     <ClInclude Include="linmath.h" />
     <ClInclude Include="cMeshObject.h" />
     <ClInclude Include="sPlyTriangle.h" />
     <ClInclude Include="sPlyVertex.h" />
+    <ClInclude Include="sModelDrawInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="bun_res3_xyz.ply" />

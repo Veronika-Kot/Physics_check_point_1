@@ -14,17 +14,17 @@
 #include "cShaderManager.h" 
 #include <iostream>
 #include "cMeshObject.h"
-
-using namespace std;
+#include "cVAOMeshManager.h"
 
 cMeshObject objectsToDraw[100];
 unsigned int numberofObjectsToDraw = 0;
 
-glm::vec3 g_CameraEye = glm::vec3(0.0, 0.0, +10.0f);
+glm::vec3 g_CameraEye = glm::vec3(0.0, 0.0, -10.0f);
 glm::vec3 g_CameraAt = glm::vec3(0.0, 0.0, 0.0f);
 
 
 cShaderManager* pTheShaderManager; 
+cVAOMeshManager* pTheVAOMeshManager;
 
 static void error_callback(int error, const char* description)
 {
@@ -103,7 +103,7 @@ int main(void)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-	window = glfwCreateWindow(1000, 580, "Banny", NULL, NULL);
+	window = glfwCreateWindow(1300, 880, "Banny", NULL, NULL);
 	//(W, H, title, ?, ?)
 
 	if (!window)
@@ -118,7 +118,7 @@ int main(void)
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	glfwSwapInterval(1);
 
-	//***At this point GLFM is happy and has moved to OpenGL
+	//********************************At this point GLFM is happy and has moved to OpenGL***********************************
 
 	//***Create a shader manager
 	pTheShaderManager = new cShaderManager();
@@ -132,98 +132,93 @@ int main(void)
 	fragmentShader.fileName = "fragment01.glsl";
 	fragmentShader.shaderType = cShaderManager::cShader::FRAGMENT_SHADER;
 
-	if (pTheShaderManager->createProgramFromFile("myShader",
-		vertexShader,
-		fragmentShader)) {
-
-		cout << "Compiled shaders OK" << endl;
-
-	}
-	else {
-		cout << "OHH No" << endl;
-		cout << pTheShaderManager->getLastError()<< endl;
-	}
-
-	//GLuint vertex_buffer, vertex_shader, fragment_shader;//, program; 
-
-	//GLuint vertex_buffer;  
-	GLuint vertex_shader;
-	GLuint fragment_shader;
-
-
-	GLint mvp_location, vpos_location, vcol_location;
-
-	// NOTE: OpenGL error checks have been omitted for brevity
-
-
-	//Load the  ply file...
-	if (!LoadPlyFileData("bun_res3_xyz.ply"))
+	if (pTheShaderManager->createProgramFromFile("myShader", vertexShader, fragmentShader)) 
 	{
-		std::cout << "Can't load the file. Existing." << std::endl;
-		return -1;
-	}
-	
-	//if (!LoadMeshIntoGPUBuffer()) {
-	if (!Load_And_Unroll_MeshIntoGPUBuffer()) {
-		std::cout << "Didn't MESH load it to GPU" << std::endl;
-		return -1;
+		std::cout << "Compiled shaders OK" << std::endl;
 	}
 	else {
-		std::cout << "Mesh is loaded" << std::endl;
+		std::cout << "OHH No" << std::endl;
+		std::cout << pTheShaderManager->getLastError()<< std::endl;
+	}
+    //***End 
+
+	//passing just created shader to OpenGL functions
+	GLuint program = pTheShaderManager->getIDFromFriendlyName("myShader"); //glUseProgram(program);...
+	GLint mvp_location = glGetUniformLocation(program, "MVP"); //glUniformMatrix4fv(mvp_location,...
+
+	
+
+	//*******Loading Mesh Models
+	cVAOMeshManager* pTheVAOMeshManager = new cVAOMeshManager();
+
+	sModelDrawInfo bunnyInfo;
+	bunnyInfo.meshFileName = "bun_res3_xyz.ply";
+	if (!pTheVAOMeshManager->LoadModelIntoVAO(bunnyInfo, program)) {
+		std::cout << "Didn't load the bunny" << std::endl;
+		std::cout << pTheShaderManager ->getLastError() << std::endl;
+	}
+	else {
+		std::cout << "Bunny is Loaded" << std::endl;
 	}
 
-	//Copy buffer to GPU 
-	//This line change the data to the way shader wants/GPU understands
-	
-	//copy those lines to seperate file OPenGLMesh Buffer
-	//glGenBuffers(1, &vertex_buffer); //& - passing by refference, gives the address
-	//glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer); //gives to a new buffer a type permanetly(never change)
-	//- "vertex buffer"
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); 
+	sModelDrawInfo airpalneInfo;
+	airpalneInfo.meshFileName = "mig29xyz.ply";
+	if (!pTheVAOMeshManager->LoadModelIntoVAO(airpalneInfo, program)) {
+		std::cout << "Didn't load the airplane 1" << std::endl;
+		std::cout << pTheShaderManager->getLastError() << std::endl;
+	}
 
+	sModelDrawInfo fishInfo;
+	fishInfo.meshFileName = "PacificCod0.ply";
+	if (!pTheVAOMeshManager->LoadModelIntoVAO(fishInfo, program)) {
+		std::cout << "Didn't load the fish"<< std::endl;
+		std::cout << pTheShaderManager->getLastError() << std::endl;
+	}
 
-	GLuint program = pTheShaderManager->getIDFromFriendlyName("myShader");
-	mvp_location = glGetUniformLocation(program, "MVP");
-	vpos_location = glGetAttribLocation(program, "vPos");
-	vcol_location = glGetAttribLocation(program, "vCol");
+	sModelDrawInfo airpalneInfo2;
+	airpalneInfo2.meshFileName = "ssj100xyz.ply";
+	if (!pTheVAOMeshManager->LoadModelIntoVAO(airpalneInfo2, program)) {
+		std::cout << "Didn't load the airplane 2" << std::endl;
+		std::cout << pTheShaderManager->getLastError() << std::endl;
+	}
 
+	sModelDrawInfo Utah;
+	Utah.meshFileName = "Utah_Teapot.ply";
+	if (!pTheVAOMeshManager->LoadModelIntoVAO(Utah, program)) {
+		std::cout << "Didn't load the Utah Teapot" << std::endl;
+		std::cout << pTheShaderManager->getLastError() << std::endl;
+	}
+	//****End of loading mesh models
 
-	//   X      Y    Z    R   G     B
-	//{ -0.6f, -0.4f, 0.f, 1.f, 0.f, 0.f }, // vertex 0
-
-	//Passing data here array above in format from vertex01.glsl
-	glEnableVertexAttribArray(vpos_location);
-	glVertexAttribPointer(vpos_location, //"vPosition"
-							3, // vec3 (xyz) 
-								GL_FLOAT,
-								GL_FALSE, // Don't normilize
-								sizeof(float) * 6, //after you find the first value vertex, where to 
-												   // find the next vertex -> 6 floats away, 6 for xyz+rgb
-								(void*)0); //start at 0
-
-
-
-	glEnableVertexAttribArray(vcol_location);
-
-
-
-	glVertexAttribPointer(vcol_location, //cColor
-								3,  //vec3 rgb
-								GL_FLOAT, 
-								GL_FALSE,
-							sizeof(float) * 6, //changed from 5
-		
-	(void*)(sizeof(float) * 3)); // starts 3 floats in (changed from 2 to 3)
-
-	//set up some bunnies
+	//**** set up some models to draw
 	objectsToDraw[0].position = glm::vec3( -3.0f, 0.0f, 0.0f );
+	objectsToDraw[0].objColour = glm::vec3( 1.0f, 0.0f, 0.0f );
+	objectsToDraw[0].nonUniformScale = glm::vec3(0.5f, 0.5f, 0.5f);
+	objectsToDraw[0].meshName = "mig29xyz.ply";
+
 	objectsToDraw[1].position = glm::vec3( +3.0f, 0.0f, 0.0f);
-	objectsToDraw[2].position = glm::vec3( 0.0f, 3.0f, 0.0f);
+	objectsToDraw[1].objColour = glm::vec3(0.0f, 1.1f, 0.0f);
+	objectsToDraw[1].meshName = "PacificCod0.ply";
+
+	objectsToDraw[2].position = glm::vec3( 0.0f, +3.0f, 0.0f);
+	objectsToDraw[2].objColour = glm::vec3(0.0f, 0.0f, 1.1f);
+	objectsToDraw[2].meshName = "ssj100xyz.ply";
+
 	objectsToDraw[3].position = glm::vec3(0.0f, -3.0f, 0.0f);
+	objectsToDraw[3].objColour = glm::vec3(0.19f, 0.6f, 0.3f);
+	objectsToDraw[3].nonUniformScale = glm::vec3(0.005f, 0.005f, 0.005f);
+	objectsToDraw[3].meshName = "Utah_Teapot.ply";
 
-	numberofObjectsToDraw = 4;
+	objectsToDraw[4].position = glm::vec3(0.0f, -1.0f, 0.0f);
+	objectsToDraw[4].objColour = glm::vec3(1.0f, 1.0f, 1.0f);
+	objectsToDraw[4].nonUniformScale = glm::vec3(3.0f, 3.0f, 3.0f);
+	objectsToDraw[4].meshName = "bun_res3_xyz.ply";
 
-	//there is a program logic
+	numberofObjectsToDraw = 5;
+
+	//*****End of setting up models to draw
+
+	//there is a program logic - constantly refreshing the frame
 	while (!glfwWindowShouldClose(window))
 	{
 		float ratio;
@@ -239,76 +234,127 @@ int main(void)
 
 		glViewport(0, 0, width, height);
 
-		glClear(GL_COLOR_BUFFER_BIT); //clear the screen
+		glClear(GL_COLOR_BUFFER_BIT); //clear the screen = refresh the frame, clear previous frame
 
 		//Draw all the objects in the sceene
-
 		for (unsigned int objIndex = 0;
 			objIndex != numberofObjectsToDraw; 
 			objIndex++) 
 		{
-		m = glm::mat4(1.0f); //mat4x4_identity(m); linmath - creates identity matrix
-		//messing with the model matrix moves the object
+			//************************************ glm transformation matrices **************************************
 
-		//mat4x4_rotate_Y(m, m, (float)glfwGetTime());  linmath 
-		glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f), //pathing the matrix
-			(float)glfwGetTime(), //give the time
-			glm::vec3(0.0f, 0.0, 1.0f)); //1.0f - z coordinate -- rotate around z, 
-//m = m * rotateZ;
+			m = glm::mat4x4(1.0f);		// mat4x4_identity(m);
 
-//generating the matrix which moves the object
-		//glm::mat4 matMove = glm::translate(glm::mat4(1.0f),
-		//	glm::vec3(-2.0f, 0.0f, 0.0f) //where we are placing the object
-		//);
+			// Before positioning, rotating around a model's axes
+			glm::mat4 preRot_X = glm::rotate(glm::mat4(1.0f),
+				objectsToDraw[objIndex].preRotation.x,
+				glm::vec3(1.0f, 0.0, 0.0f));
+			m = m * preRot_X;
 
-		glm::mat4 matMove = glm::translate(glm::mat4(1.0f),
-										   objectsToDraw[objIndex].position //where we are placing the object
-										   );
+			glm::mat4 preRot_Y = glm::rotate(glm::mat4(1.0f),
+				objectsToDraw[objIndex].preRotation.y,
+				glm::vec3(0.0f, 1.0, 0.0f));
+			m = m * preRot_Y;
 
-		m = m * matMove;
+			glm::mat4 preRot_Z = glm::rotate(glm::mat4(1.0f),
+				objectsToDraw[objIndex].preRotation.z,
+				glm::vec3(0.0f, 0.0, 1.0f));
+			m = m * preRot_Z;
 
-		//p = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
-									//orthgrapic doesn't make things smaller when they far away
-		p = glm::perspective(0.6f, 	// mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f); orthograpic linmath; ortho flat everything to 2D
-			ratio,
-			0.1f,
-			1000.0f);
+					//* constantly rotating around the axis
+					//glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f), //pathing the matrix
+					//	(float)glfwGetTime(), //give the timea
+					//	glm::vec3(0.0f, 0.0, 1.0f));
 
-		//position 3D camera
-		view = glm::lookAt(g_CameraEye, //EyE --- place camera in the world
+					//m = m * rotateZ;
+
+			//Positioning model in the scene
+			glm::mat4 matMove = glm::translate(glm::mat4(1.0f),
+				objectsToDraw[objIndex].position);
+
+			m = m * matMove;
+
+			// After positioning, rotating around the scene's axes
+			glm::mat4 postRot_X = glm::rotate(glm::mat4(1.0f),
+				objectsToDraw[objIndex].postRotation.x,
+				glm::vec3(1.0f, 0.0, 0.0f));
+			m = m * postRot_X;
+
+			glm::mat4 postRot_Y = glm::rotate(glm::mat4(1.0f),
+				objectsToDraw[objIndex].postRotation.y,
+				glm::vec3(0.0f, 1.0, 0.0f));
+			m = m * postRot_Y;
+
+			glm::mat4 postRot_Z = glm::rotate(glm::mat4(1.0f),
+				objectsToDraw[objIndex].postRotation.z,
+				glm::vec3(0.0f, 0.0, 1.0f));
+			m = m * postRot_Z;
+
+			// And now scale
+
+			glm::mat4 matScale = glm::scale(glm::mat4(1.0f),
+				objectsToDraw[objIndex].nonUniformScale);
+			m = m * matScale;
+
+			////**************************** End of transformation matrices *******************************
+
+		
+			p = glm::perspective(0.6f, ratio, 0.1f, 1000.0f);
+
+			//position 3D camera
+			view = glm::lookAt(g_CameraEye, //EyE --- place camera in the world
 			g_CameraAt, //At --- Look at origin
 			glm::vec3(0.0f, 1.0f, 0.0f));//UP --- Y axis to be up
 
 
-		mvp = p * view * m;  // mat4x4_mul(mvp, p, m); linmath multiplyin all 3 metrisis together 
+			mvp = p * view * m;  // mat4x4_mul(mvp, p, m); linmath multiplyin all 3 metrisis together 
 
-		glUseProgram(program);
+			glUseProgram(program);
+			glUniformMatrix4fv(mvp_location, //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp); linmath
+								1,
+								GL_FALSE,
+								glm::value_ptr(mvp));
 
-		glUniformMatrix4fv(mvp_location, //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp); linmath
-			1,
-			GL_FALSE,
-			glm::value_ptr(mvp));
+
+			//without below lines modal just filled with surface
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); //draw it as a point at each vertex. Reads the data as triangles but draw them as points
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  //draw a line between vertexes, GL_FILL is default
+
+			GLint objectColor_UniLoc = glGetUniformLocation(program, "objectColor");
+			glUniform3f(objectColor_UniLoc,
+								objectsToDraw[objIndex].objColour.r,
+								objectsToDraw[objIndex].objColour.g,
+								objectsToDraw[objIndex].objColour.b);
 
 
-		//without below lines modal just filled with serface
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); //draw it as a point at each vertex. Reads the data as triangles but draw them as points
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  //draw a line between vertexes, GL_FILL is default
+			//******************Draw mesh models in the screen
 
-		//unsigned int numVertices = 1889;
-		//glDrawArrays(GL_TRIANGLES, 0, numVertices);
-		glDrawArrays(GL_TRIANGLES, 0, g_UnrolledNumberOfVertices);
-		//glDrawArrays(GL_TRIANGLES, 0, 3); //Draws whatever in the buffer 3 - vertises; 
-		//Can draw a point, line etc. by gining a coordinates. 
+			sModelDrawInfo modelInfo;
+			modelInfo.meshFileName = objectsToDraw[objIndex].meshName;
 
-	}
+			if (pTheVAOMeshManager->FindDrawInfoByModelName(modelInfo)) 
+			{
+				//glDrawArrays(GL_TRIANGLES, 0, modelInfo.numberOfIndices);
+				glBindVertexArray(modelInfo.VAO_ID);
+				glDrawElements(GL_TRIANGLES, modelInfo.numberOfIndices, GL_UNSIGNED_INT, 0);
+				glBindVertexArray( 0 );
+			}
+			else {
+				std::cout << "Can't draw the mesh" << std::endl;
+			}
+			//**********************End of drawing
+
+		} // for (unsigned int objIndex = 0; 
 
 		glfwSwapBuffers(window); //swap windows, so we don't see actual drawing happenin
 		glfwPollEvents();
-	}
+
+	} //while (!glfwWindowShouldClose(window))
 
 	//DELETING STUFF
 
-	delete pTheShaderManager;
+		delete pTheShaderManager;
+		delete pTheVAOMeshManager;
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

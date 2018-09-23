@@ -16,11 +16,11 @@
     <Filter Include="ShaderStuff">
       <UniqueIdentifier>{ef3beed9-cead-4b99-aa2a-57df75570638}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Mesh Manager">
+      <UniqueIdentifier>{bab64d3d-0c36-4191-a23f-3704b59ac240}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="theMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -34,6 +34,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenGLMeshLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sModelDrawInfo.cpp">
+      <Filter>Mesh Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="cVAOMeshManager.cpp">
+      <Filter>Mesh Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="theMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -55,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="cMeshObject.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cVAOMeshManager.h">
+      <Filter>Mesh Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="sModelDrawInfo.h">
+      <Filter>Mesh Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
