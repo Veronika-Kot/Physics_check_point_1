@@ -4,9 +4,44 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 #include <string>
 #include "sPlyVertex.h"
 #include "sPlyTriangle.h"
+#include "cMeshObject.h"
+#include "vector"
+#include "sModelDrawInfo.h"
+#include "cVAOMeshManager.h"
+
+extern cMeshObject* pRogerRabbit;
+
+extern cVAOMeshManager* g_pTheVAOMeshManager;
+
+extern glm::vec3 g_CameraEye;
+extern glm::vec3 g_CameraAt;
+
+extern glm::vec3 g_lightPos;
+extern float g_lightBrightness;
+
+extern std::vector<cMeshObject*> g_vecObjectsToDraw;
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void processKeys(GLFWwindow* window);
+
+cMeshObject* findObjectByFriendlyName(std::string theName);
+cMeshObject* findObjectByUniqueID(unsigned int ID);
+
+//void CalculateClosestPointOnMesh(sModelDrawInfo theMeshDrawInfo, glm::vec3 pointToTest, glm::vec3 &closestPoint);
+//void CalculateClosestPointOnMesh(sModelDrawInfo theMeshDrawInfo, glm::vec3 pointToTest, std::vector<glm::vec3> &vecPoints);
+//void CalculateClosestPointOnMesh(sModelDrawInfo theMeshDrawInfo, glm::vec3 pointToTest, glm::vec3 &closestPointToModel, sPlyTriangle &theTriangle);
+void CalculateClosestPointOnMesh(sModelDrawInfo theMeshDrawInfo, glm::vec3 pointToTest, glm::vec3 &closestPointToModel, glm::vec3 *theVertices);
+void DrawElement(glm::vec3* theVertices, glm::mat4x4 &matModel, GLuint program);
+
+
+void DrawObject(cMeshObject* pCurrentMesh, glm::mat4x4 &m, GLuint program);
+
+void DrawElement(glm::vec3 *theVertices, glm::mat4x4 &matModel, GLuint program);
 
 //extern key means "Don't allocate it here, bc it is(will be) allocated somewhere else,
 //It helps to avoid Linker error. "extern" doesn't work if assign to 0

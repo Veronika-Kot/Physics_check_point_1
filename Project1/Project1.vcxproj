@@ -19,14 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cMeshObject.cpp" />
     <ClCompile Include="cShader.cpp" />
     <ClCompile Include="cShaderManager.cpp" />
     <ClCompile Include="cVAOMeshManager.cpp" />
+    <ClCompile Include="DrawElement.cpp" />
+    <ClCompile Include="DrawObject.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="OpenGLMeshLoader.cpp" />
+    <ClCompile Include="PhysicsStuff.cpp" />
     <ClCompile Include="PlyFileLoader.cpp" />
     <ClCompile Include="sModelDrawInfo.cpp" />
     <ClCompile Include="theMain.cpp" />
+    <ClCompile Include="UserIO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cShaderManager.h" />
@@ -39,7 +44,6 @@
     <ClInclude Include="sModelDrawInfo.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="bun_res3_xyz.ply" />
     <None Include="fragment01.glsl" />
     <None Include="vertex01.glsl" />
   </ItemGroup>

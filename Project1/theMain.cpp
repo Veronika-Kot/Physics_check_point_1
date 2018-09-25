@@ -8,90 +8,39 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
-
+#include <vector>
 #include <stdlib.h> //<> are system include
 #include <stdio.h>
 #include "cShaderManager.h" 
 #include <iostream>
-#include "cMeshObject.h"
 #include "cVAOMeshManager.h"
+#include "cMeshObject.h"
+#include "sMOdelDrawInfo.h"
 
-cMeshObject objectsToDraw[100];
-unsigned int numberofObjectsToDraw = 0;
-
-glm::vec3 g_CameraEye = glm::vec3(0.0, 0.0, -10.0f);
+std::vector<cMeshObject* > g_vecObjectsToDraw;
+///can access vecObjectsToDraw[1] too
+cMeshObject* pRogerRabbit = NULL;
+glm::vec3 g_CameraEye = glm::vec3(0.0, 0.0, -20.0f);
 glm::vec3 g_CameraAt = glm::vec3(0.0, 0.0, 0.0f);
+glm::vec3 g_lightPos = glm::vec3(4.0f, 4.0f, 0.0f);
 
+float g_lightBrightness = 400000.0f;
 
 cShaderManager* pTheShaderManager; 
-cVAOMeshManager* pTheVAOMeshManager;
+cVAOMeshManager* g_pTheVAOMeshManager;
+
+
+
+void LoadModelsIntoScene(void);
 
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, 
-						int key, 
-						int scancode, 
-						int action, 
-						int mods)
-{
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	}
-
-	const float CAMERA_SPEED = 0.1f;
-	//WASD + q = "up", e = "down"
-	//y axis = up and down
-	//x axis = left and dowm
-	//z axis = forward and backward
-
-	// ****  Z  ****
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) //Forward
-	{
-		//checked every frame
-		g_CameraEye.z += CAMERA_SPEED; //Clear the screen - Draw the bunny - check for key = over and over again
-	}
-	if (key == GLFW_KEY_S && action == GLFW_PRESS) //Bakward
-	{
-		//checked every frame
-		g_CameraEye.z -= CAMERA_SPEED; //Clear the screen - Draw the bunny - check for key = over and over again
-	}
-
-	// ****  X  ****
-	if (key == GLFW_KEY_A && action == GLFW_PRESS) //Right
-	{
-		//checked every frame
-		g_CameraEye.x += CAMERA_SPEED; //Clear the screen - Draw the bunny - check for key = over and over again
-	}
-
-	if (key == GLFW_KEY_D && action == GLFW_PRESS) //Left
-	{
-		//checked every frame
-		g_CameraEye.x -= CAMERA_SPEED; //Clear the screen - Draw the bunny - check for key = over and over again
-	}
-
-	// ****  Y  ****
-	if (key == GLFW_KEY_Q && action == GLFW_PRESS) //Up
-	{
-		//checked every frame
-		g_CameraEye.y += CAMERA_SPEED; //Clear the screen - Draw the bunny - check for key = over and over again
-	}
-
-	if (key == GLFW_KEY_E && action == GLFW_PRESS) //Down
-	{
-		//checked every frame
-		g_CameraEye.y -= CAMERA_SPEED; //Clear the screen - Draw the bunny - check for key = over and over again
-	}
-
-	return;
-}
-
 int main(void)
 {
-	GLFWwindow* window; //creates window of app and free console
+	GLFWwindow* window; ///creates window of app and free console
 
 	glfwSetErrorCallback(error_callback);
 
@@ -104,7 +53,7 @@ int main(void)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
 	window = glfwCreateWindow(1300, 880, "Banny", NULL, NULL);
-	//(W, H, title, ?, ?)
+	///(W, H, title, ?, ?)
 
 	if (!window)
 	{
@@ -142,18 +91,16 @@ int main(void)
 	}
     //***End 
 
-	//passing just created shader to OpenGL functions
+	//***creating a chader program
 	GLuint program = pTheShaderManager->getIDFromFriendlyName("myShader"); //glUseProgram(program);...
-	GLint mvp_location = glGetUniformLocation(program, "MVP"); //glUniformMatrix4fv(mvp_location,...
 
-	
 
 	//*******Loading Mesh Models
-	cVAOMeshManager* pTheVAOMeshManager = new cVAOMeshManager();
+	g_pTheVAOMeshManager = new cVAOMeshManager();
 
 	sModelDrawInfo bunnyInfo;
 	bunnyInfo.meshFileName = "bun_res3_xyz.ply";
-	if (!pTheVAOMeshManager->LoadModelIntoVAO(bunnyInfo, program)) {
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(bunnyInfo, program)) {
 		std::cout << "Didn't load the bunny" << std::endl;
 		std::cout << pTheShaderManager ->getLastError() << std::endl;
 	}
@@ -163,200 +110,329 @@ int main(void)
 
 	sModelDrawInfo airpalneInfo;
 	airpalneInfo.meshFileName = "mig29xyz.ply";
-	if (!pTheVAOMeshManager->LoadModelIntoVAO(airpalneInfo, program)) {
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(airpalneInfo, program)) {
 		std::cout << "Didn't load the airplane 1" << std::endl;
 		std::cout << pTheShaderManager->getLastError() << std::endl;
 	}
 
 	sModelDrawInfo fishInfo;
 	fishInfo.meshFileName = "PacificCod0.ply";
-	if (!pTheVAOMeshManager->LoadModelIntoVAO(fishInfo, program)) {
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(fishInfo, program)) {
 		std::cout << "Didn't load the fish"<< std::endl;
 		std::cout << pTheShaderManager->getLastError() << std::endl;
 	}
 
 	sModelDrawInfo airpalneInfo2;
 	airpalneInfo2.meshFileName = "ssj100xyz.ply";
-	if (!pTheVAOMeshManager->LoadModelIntoVAO(airpalneInfo2, program)) {
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(airpalneInfo2, program)) {
 		std::cout << "Didn't load the airplane 2" << std::endl;
 		std::cout << pTheShaderManager->getLastError() << std::endl;
 	}
 
 	sModelDrawInfo Utah;
 	Utah.meshFileName = "Utah_Teapot.ply";
-	if (!pTheVAOMeshManager->LoadModelIntoVAO(Utah, program)) {
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(Utah, program)) {
 		std::cout << "Didn't load the Utah Teapot" << std::endl;
 		std::cout << pTheShaderManager->getLastError() << std::endl;
 	}
+
+	sModelDrawInfo terrainInfo;
+	terrainInfo.meshFileName = "MeshLab_Fractal_Terrain_xyz.ply";
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(terrainInfo, program)) {
+		std::cout << "Didn't load the terrain" << std::endl;
+		std::cout << pTheShaderManager->getLastError() << std::endl;
+	}
+
+	sModelDrawInfo sphereInfo;
+	sphereInfo.meshFileName = "Sphere_320_faces_xyz.ply";
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(sphereInfo, program)) {
+		std::cout << "Didn't load the sphere" << std::endl;
+		std::cout << pTheShaderManager->getLastError() << std::endl;
+	}
+
+	sModelDrawInfo triangleInfo;
+	triangleInfo.meshFileName = "SingleTriangle_xyz.ply";
+	if (!g_pTheVAOMeshManager->LoadModelIntoVAO(triangleInfo, program)) {
+		std::cout << "Didn't load the triangle" << std::endl;
+		std::cout << pTheShaderManager->getLastError() << std::endl;
+	}
+
 	//****End of loading mesh models
 
-	//**** set up some models to draw
-	objectsToDraw[0].position = glm::vec3( -3.0f, 0.0f, 0.0f );
-	objectsToDraw[0].objColour = glm::vec3( 1.0f, 0.0f, 0.0f );
-	objectsToDraw[0].nonUniformScale = glm::vec3(0.5f, 0.5f, 0.5f);
-	objectsToDraw[0].meshName = "mig29xyz.ply";
+	LoadModelsIntoScene();
+	
+	//******Loading uniform variables
+	GLint objectColor_UniLoc = glGetUniformLocation(program, "objectColor");
+	GLint lightPos_UniLoc = glGetUniformLocation(program, "lightPos");
+	GLint lightBrightness_UniLoc = glGetUniformLocation(program, "lightBrightness");
 
-	objectsToDraw[1].position = glm::vec3( +3.0f, 0.0f, 0.0f);
-	objectsToDraw[1].objColour = glm::vec3(0.0f, 1.1f, 0.0f);
-	objectsToDraw[1].meshName = "PacificCod0.ply";
+	//***Unoform mat MVP
+	///GLint mvp_location = glGetUniformLocation(program, "MVP"); //glUniformMatrix4fv(mvp_location,...
+	GLint matMoldel_location = glGetUniformLocation(program, "matModel");
+	GLint matView_location = glGetUniformLocation(program, "matView");
+	GLint matProj_location = glGetUniformLocation(program, "matProj");
 
-	objectsToDraw[2].position = glm::vec3( 0.0f, +3.0f, 0.0f);
-	objectsToDraw[2].objColour = glm::vec3(0.0f, 0.0f, 1.1f);
-	objectsToDraw[2].meshName = "ssj100xyz.ply";
 
-	objectsToDraw[3].position = glm::vec3(0.0f, -3.0f, 0.0f);
-	objectsToDraw[3].objColour = glm::vec3(0.19f, 0.6f, 0.3f);
-	objectsToDraw[3].nonUniformScale = glm::vec3(0.005f, 0.005f, 0.005f);
-	objectsToDraw[3].meshName = "Utah_Teapot.ply";
-
-	objectsToDraw[4].position = glm::vec3(0.0f, -1.0f, 0.0f);
-	objectsToDraw[4].objColour = glm::vec3(1.0f, 1.0f, 1.0f);
-	objectsToDraw[4].nonUniformScale = glm::vec3(3.0f, 3.0f, 3.0f);
-	objectsToDraw[4].meshName = "bun_res3_xyz.ply";
-
-	numberofObjectsToDraw = 5;
-
-	//*****End of setting up models to draw
+	//End of uniforms
 
 	//there is a program logic - constantly refreshing the frame
 	while (!glfwWindowShouldClose(window))
 	{
 		float ratio;
 		int width, height;
-		glm::mat4x4 m;
-		glm::mat4x4 view = glm::mat4(1.0f);
-		glm::mat4x4 p;
-		glm::mat4x4 mvp;
-		//mat4x4 m, p, mvp; linmath model projection model-view-projection
+		//glm::mat4x4 m;
+		///glm::mat4x4 view = glm::mat4(1.0f);
+		///glm::mat4x4 p;
+		///glm::mat4x4 mvp;
+		///mat4x4 m, p, mvp; linmath model projection model-view-projection
+
+		/*glm::mat4x4 matModel = glm::mat4(1.0f);*/			// mat4x4 m, p, mvp;
+		glm::mat4x4 matProjection = glm::mat4(1.0f);
+		glm::mat4x4	matView = glm::mat4(1.0f);
 
 		glfwGetFramebufferSize(window, &width, &height);
 		ratio = width / (float)height;
 
 		glViewport(0, 0, width, height);
 
-		glClear(GL_COLOR_BUFFER_BIT); //clear the screen = refresh the frame, clear previous frame
 
-		//Draw all the objects in the sceene
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_DEPTH); ///Enables the KEEPING of the depth information
+		glEnable(GL_DEPTH_TEST); ///When drawing check the existing depth
+		glEnable(GL_CULL_FACE); ///Discared "back facing" triangles 
+
+		///Color and depth buffers are two different things
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); ///clear the screen = refresh the frame, clear previous frame
+
+
+		matProjection = glm::perspective(0.6f, ratio, 0.1f, 1000.0f);
+
+		///position 3D camera
+		matView = glm::lookAt(g_CameraEye, //EyE --- place camera in the world
+			g_CameraAt, ///At --- Look at origin
+			glm::vec3(0.0f, 1.0f, 0.0f));
+		//mvp = p * view * m;
+
+		//glUniformMatrix4fv(matMoldel_location, 1, GL_FALSE, glm::value_ptr(m));
+		glUniformMatrix4fv(matView_location, 1, GL_FALSE, glm::value_ptr(matView));
+		glUniformMatrix4fv(matProj_location, 1, GL_FALSE, glm::value_ptr(matProjection));
+		//glm::mat4x4 matModel = glm::mat4(1.0f);
+		//DrawElement(matModel, program);
+
+		///Draw all the objects in the sceene
 		for (unsigned int objIndex = 0;
-			objIndex != numberofObjectsToDraw; 
+			objIndex != (unsigned int)g_vecObjectsToDraw.size();
 			objIndex++) 
 		{
-			//************************************ glm transformation matrices **************************************
+			glm::mat4x4 matModel = glm::mat4(1.0f);
+			cMeshObject* pCurrentMesh = g_vecObjectsToDraw[objIndex];
+			DrawObject(pCurrentMesh, matModel, program);
 
-			m = glm::mat4x4(1.0f);		// mat4x4_identity(m);
-
-			// Before positioning, rotating around a model's axes
-			glm::mat4 preRot_X = glm::rotate(glm::mat4(1.0f),
-				objectsToDraw[objIndex].preRotation.x,
-				glm::vec3(1.0f, 0.0, 0.0f));
-			m = m * preRot_X;
-
-			glm::mat4 preRot_Y = glm::rotate(glm::mat4(1.0f),
-				objectsToDraw[objIndex].preRotation.y,
-				glm::vec3(0.0f, 1.0, 0.0f));
-			m = m * preRot_Y;
-
-			glm::mat4 preRot_Z = glm::rotate(glm::mat4(1.0f),
-				objectsToDraw[objIndex].preRotation.z,
-				glm::vec3(0.0f, 0.0, 1.0f));
-			m = m * preRot_Z;
-
-					//* constantly rotating around the axis
-					//glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f), //pathing the matrix
-					//	(float)glfwGetTime(), //give the timea
-					//	glm::vec3(0.0f, 0.0, 1.0f));
-
-					//m = m * rotateZ;
-
-			//Positioning model in the scene
-			glm::mat4 matMove = glm::translate(glm::mat4(1.0f),
-				objectsToDraw[objIndex].position);
-
-			m = m * matMove;
-
-			// After positioning, rotating around the scene's axes
-			glm::mat4 postRot_X = glm::rotate(glm::mat4(1.0f),
-				objectsToDraw[objIndex].postRotation.x,
-				glm::vec3(1.0f, 0.0, 0.0f));
-			m = m * postRot_X;
-
-			glm::mat4 postRot_Y = glm::rotate(glm::mat4(1.0f),
-				objectsToDraw[objIndex].postRotation.y,
-				glm::vec3(0.0f, 1.0, 0.0f));
-			m = m * postRot_Y;
-
-			glm::mat4 postRot_Z = glm::rotate(glm::mat4(1.0f),
-				objectsToDraw[objIndex].postRotation.z,
-				glm::vec3(0.0f, 0.0, 1.0f));
-			m = m * postRot_Z;
-
-			// And now scale
-
-			glm::mat4 matScale = glm::scale(glm::mat4(1.0f),
-				objectsToDraw[objIndex].nonUniformScale);
-			m = m * matScale;
-
-			////**************************** End of transformation matrices *******************************
-
-		
-			p = glm::perspective(0.6f, ratio, 0.1f, 1000.0f);
-
-			//position 3D camera
-			view = glm::lookAt(g_CameraEye, //EyE --- place camera in the world
-			g_CameraAt, //At --- Look at origin
-			glm::vec3(0.0f, 1.0f, 0.0f));//UP --- Y axis to be up
-
-
-			mvp = p * view * m;  // mat4x4_mul(mvp, p, m); linmath multiplyin all 3 metrisis together 
-
-			glUseProgram(program);
-			glUniformMatrix4fv(mvp_location, //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp); linmath
-								1,
-								GL_FALSE,
-								glm::value_ptr(mvp));
-
-
-			//without below lines modal just filled with surface
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); //draw it as a point at each vertex. Reads the data as triangles but draw them as points
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  //draw a line between vertexes, GL_FILL is default
-
-			GLint objectColor_UniLoc = glGetUniformLocation(program, "objectColor");
-			glUniform3f(objectColor_UniLoc,
-								objectsToDraw[objIndex].objColour.r,
-								objectsToDraw[objIndex].objColour.g,
-								objectsToDraw[objIndex].objColour.b);
-
-
-			//******************Draw mesh models in the screen
-
-			sModelDrawInfo modelInfo;
-			modelInfo.meshFileName = objectsToDraw[objIndex].meshName;
-
-			if (pTheVAOMeshManager->FindDrawInfoByModelName(modelInfo)) 
-			{
-				//glDrawArrays(GL_TRIANGLES, 0, modelInfo.numberOfIndices);
-				glBindVertexArray(modelInfo.VAO_ID);
-				glDrawElements(GL_TRIANGLES, modelInfo.numberOfIndices, GL_UNSIGNED_INT, 0);
-				glBindVertexArray( 0 );
-			}
-			else {
-				std::cout << "Can't draw the mesh" << std::endl;
-			}
-			//**********************End of drawing
-
+			
 		} // for (unsigned int objIndex = 0; 
 
-		glfwSwapBuffers(window); //swap windows, so we don't see actual drawing happenin
+
+		//At this point the scene is drawn
+
+		/*glfwSwapBuffers(window); ///swap windows, so we don't see actual drawing happenin
+		glfwPollEvents();*/
+
+
+		processKeys(window);
+		
+		//********************************* PHYSICS CHECK POINT **********************************
+
+		//***get  VAO
+		sModelDrawInfo theTerrainMesh;
+		theTerrainMesh.meshFileName = "MeshLab_Fractal_Terrain_xyz.ply";
+		//***theTerrainMesh.meshFileName = "SingleTriangle_xyz.ply";
+		g_pTheVAOMeshManager->FindDrawInfoByModelName(theTerrainMesh);
+
+		//****Get it the tracking object.
+		cMeshObject* pTheBunny = findObjectByFriendlyName("mig");
+
+		//std::vector<glm::vec3> vecClosestPoints;
+		
+		//***Closest point in the mesh
+		glm::vec3 closestPoint;
+		
+		//***Vertices of triangle which containes the closest point
+		glm::vec3 theVertices [3];
+
+		//***Get the closest point and the vertices of the closest triangle 
+		CalculateClosestPointOnMesh(theTerrainMesh, pTheBunny->position, closestPoint, theVertices);//vecClosestPoints);
+		
+		//***Place a green sphere at the closest point
+		cMeshObject* pDebugSphere = findObjectByFriendlyName("DebugSphere");
+		pDebugSphere->position = closestPoint;
+		glm::mat4x4 matModel = glm::mat4(1.0f);
+		DrawObject(pDebugSphere, matModel, program);
+
+		//*** Place a new red triangle on the top of the closest triangle 
+		glm::mat4x4 matModel1 = glm::mat4(1.0f);
+		DrawElement(theVertices, matModel1, program);
+		
+		//********************************* THE END OF PHYSICS CHECK POINT **************************************
+
+		glfwSwapBuffers(window); ///swap windows, so we don't see actual drawing happenin
 		glfwPollEvents();
+
+
+		///for (unsigned int index = 0; index != vecClosestPoints.size(); index++)
+		///{
+		///	//cMeshObject* pDebugSphere = findObjectByFriendlyName("DebugSphere");
+		///	//pDebugSphere->position = vecClosestPoints[index];
+		///	//glm::mat4x4 matModel = glm::mat4(1.0f);
+		///	//DrawObject(pDebugSphere, matModel, program);
+
+		///	glm::vec3 closestDot = glm::vec3(vecClosestPoints[index].x, vecClosestPoints[index].y, vecClosestPoints[index].z);
+		///	glm::vec3 segment = pTheBunny->position - closestDot;
+
+		///	float length = glm::length(segment);
+
+		///	std::cout << index + 1 << " tr:"
+		///		<< " x= " << vecClosestPoints[index].x
+		///		<< " y= " << vecClosestPoints[index].y
+		///		<< " z= " << vecClosestPoints[index].z 
+		///		<< " length= "<< length << std::endl;
+		///}
 
 	} //while (!glfwWindowShouldClose(window))
 
-	//DELETING STUFF
+	//****DELETING STUFF
 
 		delete pTheShaderManager;
-		delete pTheVAOMeshManager;
+		delete g_pTheVAOMeshManager;
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
+}
+
+
+void LoadModelsIntoScene(void) {
+
+	//std::vector<cMeshObject* > vecObjectsToDraw;
+	//**** set up some models to draw
+	{
+		cMeshObject* pMig = new cMeshObject();
+		pMig->position = glm::vec3(-7.0f, 0.0f, 0.0f);
+		pMig->objColour = glm::vec3(0.0f, 0.05f, 1.0f);
+		//pMig->nonUniformScale = glm::vec3(0.7f, 0.7f, 0.7f);
+		pMig->meshName = "mig29xyz.ply";
+		pMig->friendlyName = "mig";
+		g_vecObjectsToDraw.push_back(pMig);
+	}
+	{
+		cMeshObject* pFish = new cMeshObject();
+		pFish->position = glm::vec3(+7.0f, 0.0f, 0.0f);
+		pFish->objColour = glm::vec3(0.0f, 1.1f, 0.0f);
+		pFish->nonUniformScale = glm::vec3(5.0, 5.0, 5.0);
+		pFish->bIsVisiable = false;
+		pFish->meshName = "PacificCod0.ply";
+		g_vecObjectsToDraw.push_back(pFish);
+	}
+	{
+		cMeshObject* pPlain = new cMeshObject();
+		pPlain->position = glm::vec3(0.0f, +7.0f, 0.0f);
+		pPlain->objColour = glm::vec3(0.0f, 0.0f, 1.1f);
+		pPlain->nonUniformScale = glm::vec3(3.0, 3.0, 3.0);
+		pPlain->bIsVisiable = false;
+		pPlain->meshName = "ssj100xyz.ply";
+		g_vecObjectsToDraw.push_back(pPlain);
+		pPlain->friendlyName = "Air plane";
+	}
+	{
+		cMeshObject* pTeaPot = new cMeshObject();
+		pTeaPot->position = glm::vec3(0.0f, -7.0f, 0.0f);
+		pTeaPot->objColour = glm::vec3(0.19f, 0.6f, 0.3f);
+		pTeaPot->nonUniformScale = glm::vec3(0.05f, 0.05f, 0.05f);
+		pTeaPot->bIsVisiable = false;
+		// pTeaPot-> bIsWireFrame = true;
+		pTeaPot->meshName = "Utah_Teapot.ply";
+		pTeaPot->friendlyName = "Tea pot";
+
+		g_vecObjectsToDraw.push_back(pTeaPot);
+	}
+
+	{
+		pRogerRabbit = new cMeshObject();
+		pRogerRabbit->position = glm::vec3(0.0f, 0.0f, 0.0f);
+		pRogerRabbit->objColour = glm::vec3(1.0f, 1.0f, 0.0f);
+		pRogerRabbit->nonUniformScale = glm::vec3(8.0f, 8.0f, 8.0f);
+		pRogerRabbit->bIsVisiable = false;
+		pRogerRabbit->friendlyName = "Roger";
+		pRogerRabbit->meshName = "bun_res3_xyz.ply";
+		g_vecObjectsToDraw.push_back(pRogerRabbit);
+	}
+
+	{
+		cMeshObject* pBunny = new cMeshObject();
+		pBunny->position = glm::vec3(0.0f, 0.0f, 0.0f);
+		pBunny->objColour = glm::vec3(1.0f, 1.0f, 0.0f);
+		pBunny->nonUniformScale = glm::vec3(8.0f, 8.0f, 8.0f);
+		pBunny->bIsVisiable = false;
+		pBunny->friendlyName = "Bugs";
+		pBunny->meshName = "bun_res3_xyz.ply";
+		g_vecObjectsToDraw.push_back(pBunny);
+	}
+
+	{
+		cMeshObject* pTerrain = new cMeshObject();
+		pTerrain->position = glm::vec3(0.0f, -0.0f, 0.0f);
+		pTerrain->objColour = glm::vec3(1.0f, 1.0f, 1.0f);
+		pTerrain->meshName = "MeshLab_Fractal_Terrain_xyz.ply";
+		pTerrain->bIsWireFrame = true;
+		//pTerrain->nonUniformScale = glm::vec3(0.1f,0.1f,0.1f);
+		g_vecObjectsToDraw.push_back(pTerrain);
+	}
+
+	{
+		cMeshObject* pDebugSphere = new cMeshObject();
+		pDebugSphere->position = glm::vec3(0.0f, -30.0f, 0.0f);
+		pDebugSphere->objColour = glm::vec3(0.0f, 1.0f, 0.0f);
+		pDebugSphere->meshName = "Sphere_320_faces_xyz.ply";
+		pDebugSphere->bIsWireFrame = true;
+		pDebugSphere->bIsVisiable = true;
+		pDebugSphere->nonUniformScale = glm::vec3(0.07f, 0.07f, 0.07f);
+		//pTerrain->nonUniformScale = glm::vec3(0.1f,0.1f,0.1f);
+		pDebugSphere->friendlyName = "DebugSphere";
+		g_vecObjectsToDraw.push_back(pDebugSphere);
+	}
+	{
+		cMeshObject* triangle = new cMeshObject();
+		triangle->position = glm::vec3(0.0f, -0.0f, 0.0f);
+		triangle->objColour = glm::vec3(1.0f, 1.0f, 0.0f);
+		triangle->meshName = "SingleTriangle_xyz.ply";
+		triangle->bIsWireFrame = true;
+		triangle->bIsVisiable = false;
+		triangle->friendlyName = "triangle";
+		g_vecObjectsToDraw.push_back(triangle);
+	}
+
+	return;
+}
+
+cMeshObject* findObjectByFriendlyName(std::string theName) {
+
+	cMeshObject* pTheObjectWeFound = NULL;
+
+	for (unsigned int index = 0; index != g_vecObjectsToDraw.size(); index++)
+	{
+		if (g_vecObjectsToDraw[index]->friendlyName == theName) {
+			pTheObjectWeFound = g_vecObjectsToDraw[index];
+		}
+	}
+
+	return pTheObjectWeFound;
+}
+cMeshObject* findObjectByUniqueID(unsigned int ID) {
+	for (unsigned int index = 0; index != g_vecObjectsToDraw.size(); index++)
+	{
+		if (g_vecObjectsToDraw[index]->getID() == ID) {
+			return g_vecObjectsToDraw[index];
+		}
+	}
+
+	return NULL;
 }
